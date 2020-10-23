@@ -6,11 +6,13 @@ import { AppComponent } from './app.component';
 import { SigInputComponent } from './Features/sig-input/sig-input.component';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { LoginComponent } from './Features/login/login.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     SigInputComponent,
+    LoginComponent,
   ],
   imports: [
     BrowserModule,
