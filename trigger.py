@@ -66,4 +66,7 @@ print(brill_tag.train_stats())
 b = brill_tag.evaluate(test_sents)
 print ("Accuracy of brill_tag : ", b) 
 
-
+from pickle import dump
+output = open('t2.pkl', 'wb')
+dump(brill_tag, output, -1)
+output.close()

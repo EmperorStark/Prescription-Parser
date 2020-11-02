@@ -19,9 +19,11 @@ export class SigInputComponent implements OnInit {
   }
 
   onTextSubmitted(){
-    this.sigService.parseSig(this.sigText).subscribe(res => {
-      console.log(res.data);
-    });
+    // this.sigService.parseSig(this.sigText).subscribe(res => {
+    //   console.log('IMHERE');
+    //  console.log(JSON.stringify(res));
+    //   console.log(res);
+    // });
     this.parsedSig$ = this.sigService
       .parseSig(this.sigText)
       .pipe(take(1));

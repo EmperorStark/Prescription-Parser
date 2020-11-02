@@ -10,7 +10,11 @@ export class ParseSigService {
 
   constructor(private http: HttpClient) { }
 
-  public parseSig(sigText : string): Observable<any>{
-    return this.http.get<any>(`${environment.ApiBaseUrl}/parse?sigText=` + sigText);
+  public parseSig(sigText : string): Observable<string>{
+    const params = new HttpParams();
+    params.append('Content-Type', 'application/json');
+    return this.http.get<string>(`${environment.ApiBaseUrl}/parse?sigText=` + sigText, {
+      params
+    });
   }
 }

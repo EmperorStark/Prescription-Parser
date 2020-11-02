@@ -4,8 +4,12 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Newtonsoft.Json.Linq;
+using System.Web.Http;
+using System.Net.Http;
+using HttpPostAttribute = Microsoft.AspNetCore.Mvc.HttpPostAttribute;
+using HttpGetAttribute = Microsoft.AspNetCore.Mvc.HttpGetAttribute;
+using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 
 namespace prescription_parser_service.Controllers
 {
@@ -13,13 +17,26 @@ namespace prescription_parser_service.Controllers
     [ApiController]
     public class SigController : ControllerBase
     {
+        private HttpClient client;
+        public SigController()
+        {
+            client = new HttpClient();
+            client.BaseAddress = new Uri("http://127.0.0.1:8001/");
+        }
+
         // GET: api/<SigController>
         [HttpGet]
-        public string Get(string sigText)
+        public async Task<IActionResult> Get(string sigText)
         {
             Console.WriteLine("here");
-            Console.WriteLine(sigText);
-            return sigText;
+            var jsonInput = new JObject
+            {
+                ["text"] = sigText
+            };
+            var response = await client.PostAsJsonAsync("api", jsonInput);
+            var r = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(r);
+            return Ok(r);
         }
 
         // POST api/<SigController>
