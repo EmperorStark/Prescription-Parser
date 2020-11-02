@@ -17,6 +17,18 @@ namespace prescription_parser_service.Controllers
     [ApiController]
     public class SigController : ControllerBase
     {
+
+        public class SigResponses
+        {
+            public List<SigResponse> Pair { get; set; }
+        }
+
+        public class SigResponse
+        {
+            public string Token { get; set; }
+            public string Tag { get; set; }
+        }
+
         private HttpClient client;
         public SigController()
         {
@@ -34,9 +46,24 @@ namespace prescription_parser_service.Controllers
                 ["text"] = sigText
             };
             var response = await client.PostAsJsonAsync("api", jsonInput);
+            //var r = await response.Content.ReadAsAsync<SigResponses>();
             var r = await response.Content.ReadAsStringAsync();
-            Console.WriteLine(r);
-            return Ok(r);
+            var json = JObject.Parse(r);
+            var responses = new List<SigResponse>();
+            foreach(var obj in json["pairs"])
+            {
+                responses.Add(new SigResponse
+                {
+                    Token = obj["token"].ToString(),
+                    Tag = obj["tag"].ToString()
+                });
+            }
+            foreach(var res in responses)
+            {
+                Console.WriteLine(res.Tag);
+                Console.WriteLine(res.Token);
+            }
+            return Ok(responses);
         }
 
         // POST api/<SigController>
