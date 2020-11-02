@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { ParseSigService } from 'src/app/services/parse-sig.service';
+import { SigResponse } from '../Models/SigResponse';
 
 @Component({
   selector: 'app-sig-input',
@@ -11,7 +12,7 @@ import { ParseSigService } from 'src/app/services/parse-sig.service';
 export class SigInputComponent implements OnInit {
   
   sigText : string;
-  parsedSig$: Observable<any>;
+  parsedSig$: Observable<SigResponse>;
 
   constructor(private sigService : ParseSigService) { }
 
@@ -27,6 +28,8 @@ export class SigInputComponent implements OnInit {
     this.parsedSig$ = this.sigService
       .parseSig(this.sigText)
       .pipe(take(1));
+      console.log('done');
     }
+    
 
 }

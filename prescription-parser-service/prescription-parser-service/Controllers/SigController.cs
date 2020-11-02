@@ -46,7 +46,6 @@ namespace prescription_parser_service.Controllers
                 ["text"] = sigText
             };
             var response = await client.PostAsJsonAsync("api", jsonInput);
-            //var r = await response.Content.ReadAsAsync<SigResponses>();
             var r = await response.Content.ReadAsStringAsync();
             var json = JObject.Parse(r);
             var responses = new List<SigResponse>();
