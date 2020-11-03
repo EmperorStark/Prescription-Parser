@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Server.IIS.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,6 +26,7 @@ namespace prescription_parser_service.TaggedResultParser {
         }
 
         public int calculateThePeriod(List<SigResponse> taggedResult) {
+            // Problem: INACCURATE due to algorithmic deficiency
             int maxSize = 1; // default to be a day
             for(int i = 0; i < taggedResult.Count; i++) {
                 if(taggedResult[i].Tag.Equals("FOR") && (i+2) <= taggedResult.Count) {
@@ -214,18 +216,17 @@ namespace prescription_parser_service.TaggedResultParser {
                     }
 
                     // Extract frequency
-                    // TODO: "two times a day"
+                    // Problem: "3 times every two weeks"
                     if ((currentTag.Equals("WITH") ||
                         currentTag.Equals("BEFORE") ||
                         currentTag.Equals("DURING") ||
                         currentTag.Equals("AFTER")) && (i + 2) <= pres.Count) // "with lunch"
                     {
-                        if (pres[i + 1].Tag.Equals("Meal") || pres[i + 1].Tag.Equals("TimeDay"))
+                        if (pres[i + 1].Tag.Equals("Meal") || pres[i + 1].Tag.Equals("TimeDay")) // with lunch, before night
                         {
                             caution = (pres[i].Token + " " + pres[i+1].Token + " ");
                             frequency = 0.0;
-                            int freq = Int32.Parse(doseNumberHelper(pres[i + 1]));
-                            frequency = FrequencyHelper(freq, pres[i + 2].Token);
+                            frequency = FrequencyHelper(1, pres[i + 1].Token);
                         }
                     }
                     if (currentTag.Equals("Quant") && (i + 2) <= pres.Count) // "every morning"
@@ -233,37 +234,58 @@ namespace prescription_parser_service.TaggedResultParser {
                         if (pres[i + 1].Tag.Equals("UnitTime") || pres[i + 1].Tag.Equals("TimeDay"))
                         {
                             caution = pres[i + 1].Token + " " + pres[i + 1].Token + " ";
-                            frequency = 0.0;
-                            int freq = Int32.Parse(doseNumberHelper(pres[i + 1]));
-                            frequency = FrequencyHelper(freq, pres[i + 2].Token);
+                            frequency = FrequencyHelper(1, pres[i + 1].Token);
                         }
                     }
                     if (currentTag.Equals("Frequency") && (i + 2) <= pres.Count) // "twice daily"
                     {
                         if (pres[i + 1].Tag.Equals("Interval"))
                         {
-
+                            int freq = quantHelper(pres[i].Token);
+                            frequency = FrequencyHelper(freq, pres[i + 1].Token);
                         }
                     }
                     if (currentTag.Equals("Quant") && (i + 3) <= pres.Count) // "every 2 hours"
                     {
                         if(pres[i+2].Tag.Equals("UnitTime"))
                         {
-                            frequency = 0.0;
                             int freq = Int32.Parse(doseNumberHelper(pres[i + 1]));
                             frequency = FrequencyHelper(freq, pres[i + 2].Token);
                         }
                     }
                     if (currentTag.Equals("Frequency") && (i + 3) <= pres.Count) // "twice per week"
                     {
-
+                        if(pres[i+1].Tag.Equals("PER") && pres[i + 2].Tag.Equals("UnitTime"))
+                        {
+                            int freq = Int32.Parse(doseNumberHelper(pres[i]));
+                            frequency = FrequencyHelper(freq, pres[i + 2].Token);
+                        }
+                    }
+                    if ((currentTag.Equals("CD") || currentTag.Equals("CDUnit")) && (i+4) <= pres.Count) // "three times per week"
+                    {
+                        if(pres[i+1].Tag.Equals("TIMES") &&
+                            (pres[i+2].Tag.Equals("PER") || pres[i + 2].Tag.Equals("A")) &&
+                            pres[i + 3].Tag.Equals("UnitTime"))
+                        {
+                            int freq = Int32.Parse(doseNumberHelper(pres[i]));
+                            frequency = FrequencyHelper(freq, pres[i + 3].Token);
+                        }
                     }
 
                     // Extract Count
-
+                    // Problem: "for half a month"
+                    if (currentTag.Equals("FOR") && (i + 3) <= pres.Count) // for two months
+                    {
+                        if((pres[i+1].Tag.Equals("CD") || pres[i + 1].Tag.Equals("CDUnit")) && pres[i + 2].Tag.Equals("UnitTime"))
+                        {
+                            int leng = Int32.Parse(doseNumberHelper(pres[i+1]));
+                            int hours = calculateHoursIn(leng, pres[i+2].Token);
+                            count = (int) (frequency * hours);
+                        }
+                    }
                 }
 
-                Drug drug = new Drug(name, dose, disorder, frequency, count);
+                Drug drug = new Drug(name, dose, disorder, caution, frequency, count);
                 toReturn.Add(drug);
             }
 
@@ -292,12 +314,14 @@ namespace prescription_parser_service.TaggedResultParser {
 
         private int quantHelper(String Quant)
         {
-            switch(Qaunt)
+            switch(Quant)
             {
                 case "every":
                     return 1;
                 case "twice":
                     return 2;
+                default:
+                    throw new ApplicationException("Unrecognized interval: " + Quant);
             }
         }
 
@@ -311,38 +335,89 @@ namespace prescription_parser_service.TaggedResultParser {
             switch (interval)
             {
                 case "hour":
-
+                    frequency = freq;
+                    break;
                 case "hours":
-
+                    frequency = 1 / freq;
+                    break;
                 case "hr":
-
+                    frequency = freq;
+                    break;
                 case "hrs":
-
+                    frequency = 1 / freq;
+                    break;
                 case "morning":
-
+                    frequency = 1 / 12;
+                    break;
                 case "noon":
-
+                    frequency = 1 / 12;
+                    break;
                 case "afternoon":
-
+                    frequency = 1 / 12;
+                    break;
                 case "evening":
-
+                    frequency = 1 / 12;
+                    break;
+                case "breakfast":
+                    frequency = 1 / 12;
+                    break;
+                case "lunch":
+                    frequency = 1 / 12;
+                    break;
+                case "brunch":
+                    frequency = 1 / 12;
+                    break;
+                case "dinner":
+                    frequency = 1 / 12;
+                    break;
                 case "night":
-
+                    frequency = 1 / 12;
+                    break;
                 case "day":
-
+                    frequency = 1 / 24;
+                    break;
                 case "days":
-
+                    frequency = 1 / (freq * 24);
+                    break;
                 case "daily":
-
+                    frequency = 1 / 24;
+                    break;
                 case "week":
-
+                    frequency = 1 / (7 * 24);
+                    break;
                 case "weeks":
-
+                    frequency = 1 / (freq * 7 * 24);
+                    break;
                 default:
-
+                    throw new ApplicationException("Unrecognized frequency: " + interval);
             }
             return frequency;
         }
+        
+        private int calculateHoursIn(int length, String interval)
+        {
+            String period = interval.ToLower();
+            if (period.EndsWith("."))
+                period = period.Substring(0, period.Length - 1);
+            switch (period)
+            {
+                case "day":
+                    return 1 * 24;
+                case "days":
+                    return length * 24;
+                case "week":
+                    return 1 * 24 * 7;
+                case "weeks":
+                    return length * 24 * 7;
+                case "month":
+                    return 1 * 24 * 30;
+                case "months":
+                    return length * 24 * 30;
+                default:
+                    throw new ApplicationException("Unrecognized hours in: " + interval);
+            }
+        }
+        
         public List<DrugTime> convertDrugWithFreqToTime(List<Drug> drugList) {
 
         }
