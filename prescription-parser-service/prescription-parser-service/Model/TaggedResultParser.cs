@@ -13,16 +13,10 @@ namespace prescription_parser_service.TaggedResultParser {
 
         private List<DrugTime> parseTaggedResult(List<SigResponse> taggedResult) {
             List<DrugTime> toReturn = new List<DrugTime>();
+            List<Drug> drugList = extractAllDrugs(taggedResult); // Extract all drug's name, dose, and frequency
             int size = calculateThePeriod(taggedResult); // Calculate how many days
 
-            List<Drug> drugList = extractAllDrugs(taggedResult); // Extract all drug's name, dose, and frequency
             List<DrugTime> drugTimeList = convertDrugWithFreqToTime(drugList); // Convert Drug List to List of Drug Time [DrugTime] 
-
-            for(int i = 0; i < size; i++) {
-                day.dealWithTheDay(drugTimeList[i]); // Use Drug Time to add drug with dose to morning, afternoon, and evening of the day
-                toReturn.Add(day);
-                i++;
-            }
 
             return toReturn;
         }
@@ -85,7 +79,13 @@ namespace prescription_parser_service.TaggedResultParser {
         }
 
         public List<Drug> extractAllDrugs(List<SigResponse> taggedResult) {
+            List<Drug> toReturn = new List<Drug>();
 
+            for(int i = 0; i < taggedResult.Count; i++) {
+
+            }
+
+            return toReturn;
         }
 
         public List<DrugTime> convertDrugWithFreqToTime(List<Drug> drugList) {
@@ -114,6 +114,7 @@ namespace prescription_parser_service.TaggedResultParser {
     public class Drug {
         String name;
         String dose;
+        String disorder;
         double frequency;
         int times;
 
