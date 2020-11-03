@@ -10,6 +10,7 @@ using System.Net.Http;
 using HttpPostAttribute = Microsoft.AspNetCore.Mvc.HttpPostAttribute;
 using HttpGetAttribute = Microsoft.AspNetCore.Mvc.HttpGetAttribute;
 using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
+using prescription_parser_service.Cache;
 
 namespace prescription_parser_service.Controllers
 {
@@ -30,10 +31,12 @@ namespace prescription_parser_service.Controllers
         }
 
         private HttpClient client;
-        public SigController()
+        private ICacheProvider cache;
+        public SigController(ICacheProvider cache)
         {
             client = new HttpClient();
             client.BaseAddress = new Uri("http://127.0.0.1:8001/");
+            this.cache = cache;
         }
 
         // GET: api/<SigController>
@@ -46,7 +49,6 @@ namespace prescription_parser_service.Controllers
                 ["text"] = sigText
             };
             var response = await client.PostAsJsonAsync("api", jsonInput);
-            //var r = await response.Content.ReadAsAsync<SigResponses>();
             var r = await response.Content.ReadAsStringAsync();
             var json = JObject.Parse(r);
             var responses = new List<SigResponse>();

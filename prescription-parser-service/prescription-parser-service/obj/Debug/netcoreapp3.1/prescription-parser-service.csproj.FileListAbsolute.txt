@@ -22,5 +22,12 @@ E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\b
 E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\System.Net.Http.Formatting.dll
 E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\System.Web.Http.dll
 E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\Newtonsoft.Json.Bson.dll
-E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\obj\Debug\netcoreapp3.1\prescription-parser-service.csproj.CoreCompileInputs.cache
-E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\obj\Debug\netcoreapp3.1\prescription-parser-service.MvcApplicationPartsAssemblyInfo.cache
+E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\CacheManager.Core.dll
+E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\CacheManager.StackExchange.Redis.dll
+E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\Pipelines.Sockets.Unofficial.dll
+E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\StackExchange.Redis.dll
+E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\System.Configuration.ConfigurationManager.dll
+E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\System.Diagnostics.PerformanceCounter.dll
+E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\System.Security.Cryptography.ProtectedData.dll
+E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\runtimes\win\lib\netcoreapp2.0\System.Diagnostics.PerformanceCounter.dll
+E:\Prescription-Parser\prescription-parser-service\prescription-parser-service\bin\Debug\netcoreapp3.1\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll

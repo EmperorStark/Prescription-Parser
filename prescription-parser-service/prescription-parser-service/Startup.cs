@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using prescription_parser_service.Cache;
 
 namespace prescription_parser_service
 {
@@ -26,6 +27,9 @@ namespace prescription_parser_service
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            services.AddSingleton<ICacheProvider>(new RedisCacheProvider("localhost"));
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
