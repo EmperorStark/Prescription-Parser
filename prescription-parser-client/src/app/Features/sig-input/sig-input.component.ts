@@ -12,7 +12,7 @@ import { SigResponse } from '../Models/SigResponse';
 export class SigInputComponent implements OnInit {
   
   sigText : string;
-  parsedSig$: Observable<SigResponse>;
+  parsedSig$: Observable<SigResponse[]>;
 
   constructor(private sigService : ParseSigService) { }
 
@@ -28,7 +28,6 @@ export class SigInputComponent implements OnInit {
     this.parsedSig$ = this.sigService
       .parseSig(this.sigText)
       .pipe(take(1));
-      console.log('done');
     }
     
 
