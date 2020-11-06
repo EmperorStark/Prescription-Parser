@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Server.IIS.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,13 +17,12 @@ namespace prescription_parser_service.TaggedResultParser {
         }
 
         private List<DrugTime> parseTaggedResult(List<SigResponse> taggedResult) {
-            List<DrugTime> toReturn = new List<DrugTime>();
             List<Drug> drugList = extractAllDrugs(taggedResult); // Extract all drug's name, dose, and frequency
             // int size = calculateThePeriod(taggedResult); // Calculate how many days
 
             List<DrugTime> drugTimeList = convertDrugWithFreqToTime(drugList); // Convert Drug List to List of Drug Time [DrugTime] 
-
-            return toReturn;
+            
+            return drugTimeList;
         }
 
         public int calculateThePeriod(List<SigResponse> taggedResult) {
@@ -88,8 +86,8 @@ namespace prescription_parser_service.TaggedResultParser {
         public List<DrugTime> convertDrugWithFreqToTime(List<Drug> drugList)
         {
             List<DrugTime> drugTimes = new List<DrugTime>();
-            
-            foreach(Drug drug in drugList)
+
+            foreach (Drug drug in drugList)
             {
                 DateTime now = DateTime.Now;
 
@@ -97,7 +95,14 @@ namespace prescription_parser_service.TaggedResultParser {
                 double frequency = drug.frequency;
                 int count = drug.count;
 
-                while(count > 0)
+                if(drug.count == 0)
+                {
+                    DateTime drugDateTime = calculateTime(now, 0, 0, frequency, caution);
+                    DrugTime drugTime = new DrugTime(drug, drugDateTime);
+                    drugTimes.Add(drugTime);
+                }
+
+                while (count > 0)
                 {
                     DateTime drugDateTime = calculateTime(now, drug.count, count, frequency, caution);
                     DrugTime drugTime = new DrugTime(drug, drugDateTime);
@@ -105,9 +110,9 @@ namespace prescription_parser_service.TaggedResultParser {
                     count--;
                 }
             }
-
+            
             drugTimes.Sort();
-
+            
             return drugTimes;
         }
         public List<Drug> extractAllDrugs(List<SigResponse> taggedResult) { // name, dose, disorder, frequency, count ASSUMING ALL INFORMATION WITHIN A PERIOD
@@ -126,10 +131,13 @@ namespace prescription_parser_service.TaggedResultParser {
                 }
             }
 
-            foreach(List<SigResponse> pres in sentences)
+            Console.WriteLine("*************************************" + sentences.Count + "******************************");
+
+            foreach (List<SigResponse> pres in sentences)
             {
                 String name = "";
                 String dose = "";
+                String route = "";
                 String disorder = "";
                 String caution = "";
                 double frequency = 0;
@@ -164,7 +172,7 @@ namespace prescription_parser_service.TaggedResultParser {
                             dose = "";
                             dose += pres[i].Token + " ";
                             dose += doseNumberHelper(pres[i + 1]) + " ";
-                            dose += pres[i + 2].Tag + " ";
+                            dose += pres[i + 2].Token + " ";
                         }
                     }
                     if (currentTag.Equals("VB") && (i + 5) <= pres.Count) // two quantity "one to two"
@@ -176,19 +184,21 @@ namespace prescription_parser_service.TaggedResultParser {
                             dose += doseNumberHelper(pres[i + 1]) + " ";
                             dose += "to" + " ";
                             dose += doseNumberHelper(pres[i + 3]) + " ";
-                            dose += pres[i + 2].Tag + " ";
+                            dose += pres[i + 2].Token + " ";
                         }
                     }
+
+                    // Extract route
                     if(currentTag.Equals("BY") && (i+2) <= pres.Count)
                     {
                         if(pres[i + 1].Tag.Equals("Body"))
                         {
-                            dose += (("by " + pres[i+1].Token) + " ");
+                            route += (("by " + pres[i+1].Token) + " ");
                         }
                     }
                     if (currentTag.Equals("Route"))
                     {
-                        dose += ("by " + pres[i].Token) + " ";
+                        route += ("by " + pres[i].Token) + " ";
                     }
 
                     // Extract disorder
@@ -247,7 +257,8 @@ namespace prescription_parser_service.TaggedResultParser {
                     if ((currentTag.Equals("WITH") ||
                         currentTag.Equals("BEFORE") ||
                         currentTag.Equals("DURING") ||
-                        currentTag.Equals("AFTER")) && (i + 2) <= pres.Count) // "with lunch"
+                        currentTag.Equals("AFTER") ||
+                        currentTag.Equals("AT")) && (i + 2) <= pres.Count) // "with lunch"
                     {
                         if (pres[i + 1].Tag.Equals("Meal") || pres[i + 1].Tag.Equals("TimeDay")) // with lunch, before night
                         {
@@ -312,10 +323,9 @@ namespace prescription_parser_service.TaggedResultParser {
                     }
                 }
 
-                Drug drug = new Drug(name, dose, disorder, caution, frequency, count);
+                Drug drug = new Drug(name, dose, route, disorder, caution, frequency, count);
                 toReturn.Add(drug);
             }
-
 
             return toReturn;
         }
@@ -359,7 +369,7 @@ namespace prescription_parser_service.TaggedResultParser {
             if (period.EndsWith("."))
                 period = period.Substring(0, period.Length - 1);
 
-            switch (interval)
+            switch (period)
             {
                 case "hour":
                     frequency = freq;
@@ -510,14 +520,16 @@ namespace prescription_parser_service.TaggedResultParser {
     public class Drug {
         public String name { get; set; }
         public String dose { get; set; }
+        public String route { get; set; }
         public String disorder { get; set; }
         public String caution { get; set; }
         public double frequency { get; set; }
         public int count { get; set; }
 
-        public Drug(String name, String dose, String disorder, String caution, double frequency, int count) {
+        public Drug(String name, String dose, String route, String disorder, String caution, double frequency, int count) {
             this.name = name;
             this.dose = dose;
+            this.route = route;
             this.disorder = disorder;
             this.caution = caution;
             this.frequency = frequency;
