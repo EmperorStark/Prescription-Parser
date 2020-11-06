@@ -11,6 +11,7 @@ using HttpPostAttribute = Microsoft.AspNetCore.Mvc.HttpPostAttribute;
 using HttpGetAttribute = Microsoft.AspNetCore.Mvc.HttpGetAttribute;
 using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 using prescription_parser_service.Cache;
+using prescription_parser_service.TaggedResultParser;
 
 namespace prescription_parser_service.Controllers
 {
@@ -68,8 +69,16 @@ namespace prescription_parser_service.Controllers
             return Ok(responses);
         }
 
-        // POST api/<SigController>
-        [HttpPost]
+        [HttpGet]
+        [Route("drugTime")]
+        public async Task<IActionResult> GetDrugTime(int year, int month, int day)
+        {
+            var drugTime = new DrugTime(new Drug("ibuprofen", "one", "by mouth", "", "", 2, 10), DateTime.Now);
+            return Ok(drugTime);
+        }
+
+            // POST api/<SigController>
+            [HttpPost]
         public string Post(string value)
         {
             Console.WriteLine(value);
