@@ -13,6 +13,11 @@ export class SigInputComponent implements OnInit {
   
   sigText : string;
   parsedSig$: Observable<SigResponse[]>;
+  currentDate: Date;
+
+  maxYear = new Date().getFullYear() + 10; // oldest recorded person was 122 so only let calendar go back 125 years
+  maxDate = new Date(this.maxYear, 0, 1); // create date based on the min year
+  minDate = new Date(); // today
 
   constructor(private sigService : ParseSigService) { }
 
@@ -29,6 +34,10 @@ export class SigInputComponent implements OnInit {
       .parseSig(this.sigText)
       .pipe(take(1));
     }
+
+  generateSchedule(){
+    console.log(this.currentDate.getMonth());
+  }
     
 
 }

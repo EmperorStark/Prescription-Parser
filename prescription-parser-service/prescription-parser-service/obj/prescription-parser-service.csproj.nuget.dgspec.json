@@ -38,10 +38,6 @@
       "frameworks": {
         "netcoreapp3.1": {
           "dependencies": {
-            "CacheManager.StackExchange.Redis": {
-              "target": "Package",
-              "version": "[1.2.0, )"
-            },
             "CachingFramework.Redis": {
               "target": "Package",
               "version": "[12.0.3, )"

@@ -32,11 +32,11 @@ namespace prescription_parser_service.Controllers
 
         private HttpClient client;
         private ICacheProvider cache;
-        public SigController(ICacheProvider cache)
+        public SigController()
         {
             client = new HttpClient();
             client.BaseAddress = new Uri("http://127.0.0.1:8001/");
-            this.cache = cache;
+            //this.cache = cache;
         }
 
         // GET: api/<SigController>

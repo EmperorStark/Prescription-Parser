@@ -1,26 +1,61 @@
 <div class="w3-row-padding w3-padding-64 w3-container">
     <div class="w3-content">
         <div class="w3-twothird">
+          <div>
             <h1>Enter your prescription in the textbox below:</h1>
             <h5 class="w3-padding-32">Please type in a sig text:</h5>
             <textarea [(ngModel)]="sigText" name="prescription" cols="90" rows="7"></textarea>
             <button class="w3-button w3-black w3-padding-large w3-large w3-margin-top" (click)="onTextSubmitted()">Submit</button>
+          </div>
+            <div class="res-content">
+              <h1>Your Personal Drug Schedule</h1>
+                <tr>
+                  <td colspan="2">
+                    <mat-form-field
+                    appearance="fill"
+                    >
+                    <input
+                      matInput
+                      [(ngModel)]="currentDate"
+                      [matDatepicker]="picker"
+                      placeholder="Please pick a date"
+                    />
+                    <mat-datepicker-toggle
+                      matSuffix
+                      [for]="picker"
+                    ></mat-datepicker-toggle>
+                    <mat-datepicker
+                      #picker
+                    ></mat-datepicker>
+                    </mat-form-field>
+                  </td>
+                  <td>
+                    <a (click)="generateSchedule()">
+                      <button
+                        mat-raised-button
+                        class="submit-button"
+                      >
+                        Generate Schedule
+                      </button>
+                    </a>
+                  </td>
+                </tr>
+          
+              <mat-card>
+                <mat-list>
+                  <div *ngFor="let sig of parsedSig$ | async">
+                    <mat-list-item>
+                        Original Token: {{ sig.token }}
+                    </mat-list-item>
+                    <mat-list-item>
+                        Tag: {{ sig.tag }}
+                    </mat-list-item>
+                  </div>
+                </mat-list>
+              </mat-card>
+            </div>
         </div>
     </div>
   </div>
+
   
-  <div class="res-content">
-    <h1>Your Personal Drug Schedule</h1>
-    <mat-card>
-      <mat-list>
-        <div *ngFor="let sig of parsedSig$ | async">
-          <mat-list-item>
-              Original Token: {{ sig.token }}
-          </mat-list-item>
-          <mat-list-item>
-              Tag: {{ sig.tag }}
-          </mat-list-item>
-        </div>
-      </mat-list>
-    </mat-card>
-  </div>
