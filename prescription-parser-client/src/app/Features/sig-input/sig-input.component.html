@@ -10,12 +10,17 @@
   </div>
   
   <div class="res-content">
-    <mat-card *ngIf="parsedSig$ | async as parsedSig">
+    <h1>Your Personal Drug Schedule</h1>
+    <mat-card>
       <mat-list>
-        <h1>Parsed Text Components</h1>
-        <mat-list-item>
-            Original Dose: parsedSig?.token
-        </mat-list-item>
+        <div *ngFor="let sig of parsedSig$ | async">
+          <mat-list-item>
+              Original Token: {{ sig.token }}
+          </mat-list-item>
+          <mat-list-item>
+              Tag: {{ sig.tag }}
+          </mat-list-item>
+        </div>
       </mat-list>
     </mat-card>
   </div>
