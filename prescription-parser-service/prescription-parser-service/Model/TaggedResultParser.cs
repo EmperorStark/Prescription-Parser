@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Server.IIS.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.AccessControl;
 // using prescription_parser_service.Controllers;
 using static prescription_parser_service.Controllers.SigController;
@@ -83,6 +85,31 @@ namespace prescription_parser_service.TaggedResultParser {
             return maxSize;
         }
 
+        public List<DrugTime> convertDrugWithFreqToTime(List<Drug> drugList)
+        {
+            List<DrugTime> drugTimes = new List<DrugTime>();
+            
+            foreach(Drug drug in drugList)
+            {
+                DateTime now = DateTime.Now;
+
+                String caution = drug.caution;
+                double frequency = drug.frequency;
+                int count = drug.count;
+
+                while(count > 0)
+                {
+                    DateTime drugDateTime = calculateTime(now, drug.count, count, frequency, caution);
+                    DrugTime drugTime = new DrugTime(drug, drugDateTime);
+                    drugTimes.Add(drugTime);
+                    count--;
+                }
+            }
+
+            drugTimes.Sort();
+
+            return drugTimes;
+        }
         public List<Drug> extractAllDrugs(List<SigResponse> taggedResult) { // name, dose, disorder, frequency, count ASSUMING ALL INFORMATION WITHIN A PERIOD
             List<Drug> toReturn = new List<Drug>();
             List<List<SigResponse>> sentences = new List<List<SigResponse>>();
@@ -418,36 +445,75 @@ namespace prescription_parser_service.TaggedResultParser {
             }
         }
         
-        public List<DrugTime> convertDrugWithFreqToTime(List<Drug> drugList) {
+        private DateTime calculateTime(DateTime now, int originalCount, int count, double frequency, String caution)
+        {
+            DateTime timeToTake = now;
+            int countDealt = originalCount - count;
 
+            double timeElapsed = 1 / frequency;
+            int hourElapsed = (int)timeElapsed;
+            int minutesElapsed = (int)((timeElapsed - Math.Truncate(timeElapsed)) * 60);
+
+            hourElapsed = (countDealt * hourElapsed) + (int)(minutesElapsed * countDealt / 60);
+            minutesElapsed = (minutesElapsed * countDealt) % 60;
+
+            TimeSpan interval = new TimeSpan(hourElapsed, minutesElapsed, 0);
+
+            return timeToTake.Add(interval);
         }
     }
 
-    public class DrugTime {
-        Drug drug;
-        DateTime time;
-        String interval;
+    public class DrugTime : IComparer<DateTime> {
+        public Drug drug { get; set; }
+        public DateTime time { get; set; }
+        public String interval { get; set; }
 
         public DrugTime(Drug drug, DateTime time) {
             this.drug = drug;
-            this.time = calculateTime();
+            this.time = time;
             this.interval = calculateInterval();
         }
 
-        public DateTime calculate
-
         public String calculateInterval() { // 12:00am - 12:00pm Morning; 12:00pm - 6:00pm Afternoon; 6:00pm - 12:00am Evening
+            TimeSpan temp = time.TimeOfDay;
+            TimeSpan morningStart = new TimeSpan(00, 0, 0); //0 o'clock
+            TimeSpan morningEnd = new TimeSpan(12, 0, 0); //12 o'clock
+            TimeSpan eveningStart = new TimeSpan(18, 0, 0); //18 o'clock
+            TimeSpan eveningEnd = new TimeSpan(24, 0, 0); //24 o'clock
 
+            if ((temp > morningStart) && (temp < morningEnd))
+            {
+                return "Morning";
+            } else if ((temp > morningEnd) && (temp < eveningStart))
+            {
+                return "Afternoon";
+            } else if ((temp > eveningStart) && (temp < eveningEnd))
+            {
+                return "Evening";
+            } else
+            {
+                throw new ApplicationException("Unrecognized interval: " + drug.name + " and time: " + time.ToString());
+            }
+        }
+
+        public int CompareTo(object obj)
+        {
+            return time.CompareTo(obj);
+        }
+
+        public int Compare([AllowNull] DateTime x, [AllowNull] DateTime y)
+        {
+            return x.CompareTo(y);
         }
     }
 
     public class Drug {
-        String name;
-        String dose;
-        String disorder;
-        String caution;
-        double frequency; // times per hour
-        int count;
+        public String name { get; set; }
+        public String dose { get; set; }
+        public String disorder { get; set; }
+        public String caution { get; set; }
+        public double frequency { get; set; }
+        public int count { get; set; }
 
         public Drug(String name, String dose, String disorder, String caution, double frequency, int count) {
             this.name = name;
@@ -457,7 +523,6 @@ namespace prescription_parser_service.TaggedResultParser {
             this.frequency = frequency;
             this.count = count;
         }
-
     }
 
     public class EnglishWordToInt {
