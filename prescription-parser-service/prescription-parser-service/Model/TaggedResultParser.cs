@@ -12,7 +12,7 @@ namespace prescription_parser_service.TaggedResultParser {
     public class Whole {
         public List<DrugTime> days  = new List<DrugTime>();
 
-        public Whole(List<SigResponse> taggedResult) {
+                public Whole(List<SigResponse> taggedResult) {
             days = parseTaggedResult(taggedResult);
         }
 
@@ -115,6 +115,7 @@ namespace prescription_parser_service.TaggedResultParser {
             
             return drugTimes;
         }
+
         public List<Drug> extractAllDrugs(List<SigResponse> taggedResult) { // name, dose, disorder, frequency, count ASSUMING ALL INFORMATION WITHIN A PERIOD
             List<Drug> toReturn = new List<Drug>();
             List<List<SigResponse>> sentences = new List<List<SigResponse>>();
@@ -177,7 +178,7 @@ namespace prescription_parser_service.TaggedResultParser {
                     }
                     if (currentTag.Equals("VB") && (i + 5) <= pres.Count) // two quantity "one to two"
                     {
-                        if (pres[i + 4].Tag.Equals("Unit") && pres[i + 2].Tag.Equals("TO")) // Not counting quantity like four and a half
+                        if (pres[i + 4].Tag.Equals("Unit") && (pres[i + 2].Tag.Equals("TO") || pres[i + 2].Tag.Equals("-"))) // Not counting quantity like four and a half
                         {
                             dose = "";
                             dose += pres[i].Token + " ";
@@ -306,7 +307,19 @@ namespace prescription_parser_service.TaggedResultParser {
                             pres[i + 3].Tag.Equals("UnitTime"))
                         {
                             int freq = Int32.Parse(doseNumberHelper(pres[i]));
-                            frequency = FrequencyHelper(freq, pres[i + 3].Token);
+                            frequency = (double)freq*FrequencyHelper(freq, pres[i + 3].Token);
+                        }
+                    }
+                    if (currentTag.Equals("Quant") && (i + 5) <= pres.Count) // "every 4 to 6 hours"
+                    {
+                        if ((pres[i + 2].Tag.Equals("TO") || pres[i + 2].Tag.Equals("-")) &&
+                            pres[i + 4].Tag.Equals("UnitTime"))
+                        {
+                            int freq1 = Int32.Parse(doseNumberHelper(pres[i+1]));
+                            int freq2 = Int32.Parse(doseNumberHelper(pres[i+3]));
+                            int freq = (freq1 + freq2) / 2;
+                            frequency = FrequencyHelper(freq, pres[i + 4].Token);
+                            // Console.WriteLine("+++++++++++++++++++++++llllllllllllllllllllll" + frequency);
                         }
                     }
 
@@ -372,58 +385,58 @@ namespace prescription_parser_service.TaggedResultParser {
             switch (period)
             {
                 case "hour":
-                    frequency = freq;
+                    frequency = (double) freq;
                     break;
                 case "hours":
-                    frequency = 1 / freq;
+                    frequency = 1 / (double) freq;
                     break;
                 case "hr":
-                    frequency = freq;
+                    frequency = (double) freq;
                     break;
                 case "hrs":
-                    frequency = 1 / freq;
+                    frequency = 1 / (double) freq;
                     break;
                 case "morning":
-                    frequency = 1 / 12;
+                    frequency = 1 / 24.0;
                     break;
                 case "noon":
-                    frequency = 1 / 12;
+                    frequency = 1 / 24.0;
                     break;
                 case "afternoon":
-                    frequency = 1 / 12;
+                    frequency = 1 / 24.0;
                     break;
                 case "evening":
-                    frequency = 1 / 12;
+                    frequency = 1 / 24.0;
                     break;
                 case "breakfast":
-                    frequency = 1 / 12;
+                    frequency = 1 / 24.0;
                     break;
                 case "lunch":
-                    frequency = 1 / 12;
+                    frequency = 1 / 24.0;
                     break;
                 case "brunch":
-                    frequency = 1 / 12;
+                    frequency = 1 / 24.0;
                     break;
                 case "dinner":
-                    frequency = 1 / 12;
+                    frequency = 1 / 24.0;
                     break;
                 case "night":
-                    frequency = 1 / 12;
+                    frequency = 1 / 24.0;
                     break;
                 case "day":
-                    frequency = 1 / 24;
+                    frequency = 1 / 24.0;
                     break;
                 case "days":
-                    frequency = 1 / (freq * 24);
+                    frequency = 1 / ((double)freq * 24.0);
                     break;
                 case "daily":
-                    frequency = 1 / 24;
+                    frequency = 1 / 24.0;
                     break;
                 case "week":
-                    frequency = 1 / (7 * 24);
+                    frequency = 1 / (7.0 * 24.0);
                     break;
                 case "weeks":
-                    frequency = 1 / (freq * 7 * 24);
+                    frequency = 1 / ((double)freq * 7.0 * 24.0);
                     break;
                 default:
                     throw new ApplicationException("Unrecognized frequency: " + interval);
@@ -469,11 +482,63 @@ namespace prescription_parser_service.TaggedResultParser {
 
             TimeSpan interval = new TimeSpan(hourElapsed, minutesElapsed, 0);
 
-            return timeToTake.Add(interval);
+            timeToTake.Add(interval);
+            TimeSpan start;
+            TimeSpan end;
+
+            switch (caution)
+            {
+                case string s when caution.Contains("at noon"):
+                    start = new TimeSpan(12, 0, 0);
+                    end = new TimeSpan(14, 0, 0);
+                    timeSpanAdapter(timeToTake, start, end);
+                    
+                    break;
+                case "at noon.":
+                    start = new TimeSpan(12, 0, 0);
+                    end = new TimeSpan(14, 0, 0);
+                    timeSpanAdapter(timeToTake, start, end);
+                    break;
+                case "with lunch":
+                    start = new TimeSpan(11, 0, 0);
+                    end = new TimeSpan(14, 0, 0);
+                    timeSpanAdapter(timeToTake, start, end);
+                    break;
+                case "with lunch.":
+                    start = new TimeSpan(11, 0, 0);
+                    end = new TimeSpan(14, 0, 0);
+                    timeSpanAdapter(timeToTake, start, end);
+                    break;
+                default:
+                    break;
+            }
+
+            return timeToTake;
+        }
+
+        private void timeSpanAdapter(DateTime timeToTake, TimeSpan start, TimeSpan end)
+        {
+            if (timeToTake.TimeOfDay < start)
+            {
+                TimeSpan duration = start - timeToTake.TimeOfDay;
+                timeToTake.Add(duration);
+            }
+            else if (timeToTake.TimeOfDay > end)
+            {
+                
+                TimeSpan temp = new TimeSpan(24, 0, 0);
+                TimeSpan duration = temp - timeToTake.TimeOfDay;
+                
+                timeToTake.Add(duration);
+                Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + timeToTake.ToString() + "!!!!!!!!!!!!!!!!!!!");
+                timeToTake.Add(start);
+            }
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + timeToTake.ToString() + "!!!!!!!!!!!!!!!!!!!");
         }
     }
 
-    public class DrugTime : IComparer<DateTime> {
+    public class DrugTime : IComparable<DrugTime>
+    {
         public Drug drug { get; set; }
         public DateTime time { get; set; }
         public String interval { get; set; }
@@ -514,6 +579,11 @@ namespace prescription_parser_service.TaggedResultParser {
         public int Compare([AllowNull] DateTime x, [AllowNull] DateTime y)
         {
             return x.CompareTo(y);
+        }
+
+        public int CompareTo([AllowNull] DrugTime other)
+        {
+            return time.CompareTo(other.time);
         }
     }
 
