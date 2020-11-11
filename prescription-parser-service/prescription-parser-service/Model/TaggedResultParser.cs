@@ -9,10 +9,10 @@ using System.Security.AccessControl;
 using static prescription_parser_service.Controllers.SigController;
 
 namespace prescription_parser_service.TaggedResultParser {
-    public class Whole {
+public class Whole {
         public List<DrugTime> days  = new List<DrugTime>();
 
-                public Whole(List<SigResponse> taggedResult) {
+        public Whole(List<SigResponse> taggedResult) {
             days = parseTaggedResult(taggedResult);
         }
 
@@ -166,12 +166,22 @@ namespace prescription_parser_service.TaggedResultParser {
 
                     // Extract dose
                     // Problem: single action word "inject, take, etc."
+                    if(currentTag.Equals("VB") && (i+3) <= pres.Count) // chew and swallow
+                    {
+                        if((pres[i+1].Tag.Equals("AND") || pres[i + 1].Tag.Equals("OR")) && pres[i+2].Tag.Equals("VB"))
+                        {
+                            dose = "";
+                            dose += pres[i].Token + " " + pres[i + 1].Token + " " + pres[i + 2].Token + " ";
+                        }
+                    }
                     if(currentTag.Equals("VB") && (i+3) <= pres.Count) // a single quantity
                     {
                         if(pres[i+2].Tag.Equals("Unit")) // Not counting quantity like four and a half
                         {
-                            dose = "";
-                            dose += pres[i].Token + " ";
+                            if(dose.Equals(""))
+                            {
+                                dose += pres[i].Token + " ";
+                            }
                             dose += doseNumberHelper(pres[i + 1]) + " ";
                             dose += pres[i + 2].Token + " ";
                         }
@@ -180,8 +190,10 @@ namespace prescription_parser_service.TaggedResultParser {
                     {
                         if (pres[i + 4].Tag.Equals("Unit") && (pres[i + 2].Tag.Equals("TO") || pres[i + 2].Tag.Equals("-"))) // Not counting quantity like four and a half
                         {
-                            dose = "";
-                            dose += pres[i].Token + " ";
+                            if (dose.Equals(""))
+                            {
+                                dose += pres[i].Token + " ";
+                            }
                             dose += doseNumberHelper(pres[i + 1]) + " ";
                             dose += "to" + " ";
                             dose += doseNumberHelper(pres[i + 3]) + " ";
@@ -190,16 +202,23 @@ namespace prescription_parser_service.TaggedResultParser {
                     }
 
                     // Extract route
-                    if(currentTag.Equals("BY") && (i+2) <= pres.Count)
+                    if(currentTag.Equals("BY") && (i+2) <= pres.Count) // by mouth
                     {
                         if(pres[i + 1].Tag.Equals("Body"))
                         {
-                            route += (("by " + pres[i+1].Token) + " ");
+                            route = (("by " + pres[i+1].Token) + " ");
                         }
                     }
-                    if (currentTag.Equals("Route"))
+                    if (currentTag.Equals("THROUGH") && (i + 3) <= pres.Count) // through the vein
                     {
-                        route += ("by " + pres[i].Token) + " ";
+                        if (pres[i + 2].Tag.Equals("Body"))
+                        {
+                            route = ("through " + pres[i + 1].Token + " " + pres[i+2].Token + " ");
+                        }
+                    }
+                    if (currentTag.Equals("Route")) // orally
+                    {
+                        route = (pres[i].Token + " ");
                     }
 
                     // Extract disorder
@@ -264,15 +283,17 @@ namespace prescription_parser_service.TaggedResultParser {
                         if (pres[i + 1].Tag.Equals("Meal") || pres[i + 1].Tag.Equals("TimeDay")) // with lunch, before night
                         {
                             caution = (pres[i].Token + " " + pres[i+1].Token + " ");
-                            frequency = 0.0;
                             frequency = FrequencyHelper(1, pres[i + 1].Token);
                         }
                     }
                     if (currentTag.Equals("Quant") && (i + 2) <= pres.Count) // "every morning"
                     {
-                        if (pres[i + 1].Tag.Equals("UnitTime") || pres[i + 1].Tag.Equals("TimeDay"))
+                        if (pres[i + 1].Tag.Equals("TimeDay"))
                         {
-                            caution = pres[i + 1].Token + " " + pres[i + 1].Token + " ";
+                            caution = pres[i].Token + " " + pres[i + 1].Token + " ";
+                            frequency = FrequencyHelper(1, pres[i + 1].Token);
+                        } else if(pres[i + 1].Tag.Equals("UnitTime"))
+                        {
                             frequency = FrequencyHelper(1, pres[i + 1].Token);
                         }
                     }
@@ -290,6 +311,14 @@ namespace prescription_parser_service.TaggedResultParser {
                         {
                             int freq = Int32.Parse(doseNumberHelper(pres[i + 1]));
                             frequency = FrequencyHelper(freq, pres[i + 2].Token);
+                        }
+                    }
+                    if (currentTag.Equals("IN") && (i + 3) <= pres.Count) // "in the evening"
+                    {
+                        if (pres[i + 2].Tag.Equals("TimeDay"))
+                        {
+                            caution = (pres[i].Token + " " + pres[i + 1].Token + " " + pres[i + 2].Token);
+                            frequency = FrequencyHelper(1, pres[i + 2].Token);
                         }
                     }
                     if (currentTag.Equals("Frequency") && (i + 3) <= pres.Count) // "twice per week"
@@ -367,6 +396,8 @@ namespace prescription_parser_service.TaggedResultParser {
             switch(Quant)
             {
                 case "every":
+                    return 1;
+                case "once":
                     return 1;
                 case "twice":
                     return 2;
@@ -482,32 +513,190 @@ namespace prescription_parser_service.TaggedResultParser {
 
             TimeSpan interval = new TimeSpan(hourElapsed, minutesElapsed, 0);
 
-            timeToTake.Add(interval);
+            timeToTake = timeToTake.Add(interval);
             TimeSpan start;
             TimeSpan end;
 
             switch (caution)
             {
-                case string s when caution.Contains("at noon"):
-                    start = new TimeSpan(12, 0, 0);
-                    end = new TimeSpan(14, 0, 0);
-                    timeSpanAdapter(timeToTake, start, end);
-                    
+                case string s when caution.Contains("at"):
+                    switch (caution)
+                    {
+                        case string x when caution.Contains("noon"):
+                            start = new TimeSpan(12, 0, 0);
+                            end = new TimeSpan(14, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("night"):
+                            start = new TimeSpan(20, 0, 0);
+                            end = new TimeSpan(24, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("midnight"):
+                            start = new TimeSpan(23, 0, 0);
+                            end = new TimeSpan(24, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("bedtime"):
+                            start = new TimeSpan(21, 0, 0);
+                            end = new TimeSpan(24, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        default:
+                            break;
+                    }
                     break;
-                case "at noon.":
-                    start = new TimeSpan(12, 0, 0);
-                    end = new TimeSpan(14, 0, 0);
-                    timeSpanAdapter(timeToTake, start, end);
+                case string s when caution.Contains("with"):
+                    switch (caution)
+                    {
+                        case string x when caution.Contains("breakfast"):
+                            start = new TimeSpan(7, 00, 0);
+                            end = new TimeSpan(10, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("lunch"):
+                            start = new TimeSpan(11, 0, 0);
+                            end = new TimeSpan(13, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("dinner"):
+                            start = new TimeSpan(17, 30, 0);
+                            end = new TimeSpan(20, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        default:
+                            break;
+                    }
                     break;
-                case "with lunch":
-                    start = new TimeSpan(11, 0, 0);
-                    end = new TimeSpan(14, 0, 0);
-                    timeSpanAdapter(timeToTake, start, end);
+                case string s when caution.Contains("before"):
+                    switch (caution)
+                    {
+                        case string x when caution.Contains("breakfast"):
+                            start = new TimeSpan(7, 0, 0);
+                            end = new TimeSpan(10, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("lunch"):
+                            start = new TimeSpan(11, 0, 0);
+                            end = new TimeSpan(13, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("dinner"):
+                            start = new TimeSpan(17, 30, 0);
+                            end = new TimeSpan(20, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("night"):
+                            start = new TimeSpan(20, 0, 0);
+                            end = new TimeSpan(24, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("afternoon"):
+                            start = new TimeSpan(12, 0, 0);
+                            end = new TimeSpan(17, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("bedtime"):
+                            start = new TimeSpan(21, 0, 0);
+                            end = new TimeSpan(24, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        default:
+                            break;
+                    }
                     break;
-                case "with lunch.":
-                    start = new TimeSpan(11, 0, 0);
-                    end = new TimeSpan(14, 0, 0);
-                    timeSpanAdapter(timeToTake, start, end);
+                case string s when caution.Contains("after"):
+                    switch (caution)
+                    {
+                        case string x when caution.Contains("breakfast"):
+                            start = new TimeSpan(8, 0, 0);
+                            end = new TimeSpan(10, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("lunch"):
+                            start = new TimeSpan(13, 0, 0);
+                            end = new TimeSpan(14, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("dinner"):
+                            start = new TimeSpan(19, 0, 0);
+                            end = new TimeSpan(21, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case string s when caution.Contains("during"):
+                    switch (caution)
+                    {
+                        case string x when caution.Contains("breakfast"):
+                            start = new TimeSpan(7, 0, 0);
+                            end = new TimeSpan(10, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("lunch"):
+                            start = new TimeSpan(11, 0, 0);
+                            end = new TimeSpan(14, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("dinner"):
+                            start = new TimeSpan(17, 30, 0);
+                            end = new TimeSpan(20, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case string s when caution.Contains("in the"):
+                    switch (caution)
+                    {
+                        case string x when caution.Contains("morning"):
+                            start = new TimeSpan(7, 0, 0);
+                            end = new TimeSpan(11, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("afternoon"):
+                            start = new TimeSpan(12, 0, 0);
+                            end = new TimeSpan(17, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("evening"):
+                            start = new TimeSpan(20, 0, 0);
+                            end = new TimeSpan(24, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case string s when caution.Contains("every"):
+                    switch (caution)
+                    {
+                        case string x when caution.Contains("morning"):
+                            start = new TimeSpan(7, 0, 0);
+                            end = new TimeSpan(11, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("afternoon"):
+                            start = new TimeSpan(12, 0, 0);
+                            end = new TimeSpan(17, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("evening"):
+                            start = new TimeSpan(20, 0, 0);
+                            end = new TimeSpan(24, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        case string x when caution.Contains("night"):
+                            start = new TimeSpan(20, 0, 0);
+                            end = new TimeSpan(24, 0, 0);
+                            timeToTake = timeSpanAdapter(timeToTake, start, end);
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 default:
                     break;
@@ -516,24 +705,21 @@ namespace prescription_parser_service.TaggedResultParser {
             return timeToTake;
         }
 
-        private void timeSpanAdapter(DateTime timeToTake, TimeSpan start, TimeSpan end)
+        private DateTime timeSpanAdapter(DateTime timeToTake, TimeSpan start, TimeSpan end)
         {
             if (timeToTake.TimeOfDay < start)
             {
                 TimeSpan duration = start - timeToTake.TimeOfDay;
-                timeToTake.Add(duration);
+                return timeToTake.Add(duration);
             }
             else if (timeToTake.TimeOfDay > end)
             {
-                
                 TimeSpan temp = new TimeSpan(24, 0, 0);
-                TimeSpan duration = temp - timeToTake.TimeOfDay;
-                
-                timeToTake.Add(duration);
-                Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + timeToTake.ToString() + "!!!!!!!!!!!!!!!!!!!");
-                timeToTake.Add(start);
+                TimeSpan duration = timeToTake.TimeOfDay - start;
+                duration = temp - duration;
+                return timeToTake.Add(duration);
             }
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + timeToTake.ToString() + "!!!!!!!!!!!!!!!!!!!");
+            return timeToTake;
         }
     }
 
@@ -556,13 +742,13 @@ namespace prescription_parser_service.TaggedResultParser {
             TimeSpan eveningStart = new TimeSpan(18, 0, 0); //18 o'clock
             TimeSpan eveningEnd = new TimeSpan(24, 0, 0); //24 o'clock
 
-            if ((temp > morningStart) && (temp < morningEnd))
+            if ((temp >= morningStart) && (temp < morningEnd))
             {
                 return "Morning";
-            } else if ((temp > morningEnd) && (temp < eveningStart))
+            } else if ((temp >= morningEnd) && (temp < eveningStart))
             {
                 return "Afternoon";
-            } else if ((temp > eveningStart) && (temp < eveningEnd))
+            } else if ((temp >= eveningStart) && (temp < eveningEnd))
             {
                 return "Evening";
             } else
