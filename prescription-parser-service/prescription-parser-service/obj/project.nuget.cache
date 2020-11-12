@@ -1,11 +1,9 @@
 {
   "version": 2,
-  "dgSpecHash": "Ze78SNz/Ez/AD37GTnAMKsOzpid+tac/4LK0L+C0BlfkSk2clxlqie+HqtWYiBjOuqyPN9QKGYH6wGW5Nw32Og==",
+  "dgSpecHash": "MaVyz3GyfH7kqgcQtIqi9W9/MsVnZi4FCyIuA+ANPX7xIl7g5jZHNJK/Km9az3kkXydh0PruMwe5c+3rU0DkAw==",
   "success": true,
   "projectFilePath": "E:\\Prescription-Parser\\prescription-parser-service\\prescription-parser-service\\prescription-parser-service.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\StarkX\\.nuget\\packages\\cachemanager.core\\1.2.0\\cachemanager.core.1.2.0.nupkg.sha512",
-    "C:\\Users\\StarkX\\.nuget\\packages\\cachemanager.stackexchange.redis\\1.2.0\\cachemanager.stackexchange.redis.1.2.0.nupkg.sha512",
     "C:\\Users\\StarkX\\.nuget\\packages\\cachingframework.redis\\12.0.3\\cachingframework.redis.12.0.3.nupkg.sha512",
     "C:\\Users\\StarkX\\.nuget\\packages\\microsoft.aspnet.webapi.client\\5.2.7\\microsoft.aspnet.webapi.client.5.2.7.nupkg.sha512",
     "C:\\Users\\StarkX\\.nuget\\packages\\microsoft.aspnet.webapi.core\\5.2.7\\microsoft.aspnet.webapi.core.5.2.7.nupkg.sha512",

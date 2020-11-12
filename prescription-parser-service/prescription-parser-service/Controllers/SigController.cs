@@ -33,18 +33,17 @@ namespace prescription_parser_service.Controllers
 
         private HttpClient client;
         private ICacheProvider cache;
-        public SigController()
+        public SigController(ICacheProvider cache)
         {
             client = new HttpClient();
             client.BaseAddress = new Uri("http://127.0.0.1:8001/");
-            //this.cache = cache;
+            this.cache = cache;
         }
 
         // GET: api/<SigController>
         [HttpGet]
-        public async Task<IActionResult> Get(string sigText)
+        public async Task<IActionResult> Get(string sigText, string drugName)
         {
-            Console.WriteLine("here");
             var jsonInput = new JObject
             {
                 ["text"] = sigText
@@ -61,11 +60,11 @@ namespace prescription_parser_service.Controllers
                     Tag = obj["tag"].ToString()
                 });
             }
-            foreach(var res in responses)
-            {
-                Console.WriteLine(res.Tag);
-                Console.WriteLine(res.Token);
-            }
+            var parsedResult = new Whole(responses);
+            await this.cache.SetAsync("CurrentList", parsedResult.days);
+            var ress = await cache.TryGetValueAsync<List<DrugTime>>("CurrentList");
+            Console.WriteLine(ress);
+            Console.WriteLine("REDIS: " + ress.result[0].time);
             return Ok(responses);
         }
 
@@ -73,8 +72,26 @@ namespace prescription_parser_service.Controllers
         [Route("drugTime")]
         public async Task<IActionResult> GetDrugTime(int year, int month, int day)
         {
-            var drugTime = new DrugTime(new Drug("ibuprofen", "one", "by mouth", "", "", 2, 10), DateTime.Now);
-            return Ok(drugTime);
+            Console.WriteLine("Reached here. " + year + "  " + month + "  " + day);
+            var drugTimes = await cache.TryGetValueAsync<List<DrugTime>>("CurrentList");
+            var drugTime = new DrugTime();
+            foreach (var time in drugTimes.result)
+            {
+                if (time.time.Date.Month == month && time.time.Date.Year == year && time.time.Date.Day == day)
+                {
+                    drugTime = time;
+                }
+            }
+            if(drugTime.drug != null)
+            {
+                Console.WriteLine(drugTime.drug.dose);
+                return Ok(drugTime);
+            }
+            else
+            {
+                Console.WriteLine("resutl is null!");
+                return Ok(drugTime);
+            }
         }
 
             // POST api/<SigController>

@@ -16,6 +16,11 @@ namespace prescription_parser_service.TaggedResultParser {
             days = parseTaggedResult(taggedResult);
         }
 
+        public void addParse(List<SigResponse> taggedResult)
+        {
+            
+        }
+
         private List<DrugTime> parseTaggedResult(List<SigResponse> taggedResult) {
             List<Drug> drugList = extractAllDrugs(taggedResult); // Extract all drug's name, dose, and frequency
             // int size = calculateThePeriod(taggedResult); // Calculate how many days
@@ -484,6 +489,13 @@ namespace prescription_parser_service.TaggedResultParser {
             this.interval = calculateInterval();
         }
 
+        public DrugTime()
+        {
+            this.drug = null;
+            this.time = DateTime.Now;
+            this.interval = null;
+        }
+
         public String calculateInterval() { // 12:00am - 12:00pm Morning; 12:00pm - 6:00pm Afternoon; 6:00pm - 12:00am Evening
             TimeSpan temp = time.TimeOfDay;
             TimeSpan morningStart = new TimeSpan(00, 0, 0); //0 o'clock
@@ -534,6 +546,11 @@ namespace prescription_parser_service.TaggedResultParser {
             this.caution = caution;
             this.frequency = frequency;
             this.count = count;
+        }
+
+        public Drug()
+        {
+
         }
     }
 

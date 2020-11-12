@@ -1,61 +1,150 @@
 <div class="w3-row-padding w3-padding-64 w3-container">
-    <div class="w3-content">
-        <div class="w3-twothird">
-          <div>
-            <h1>Enter your prescription in the textbox below:</h1>
-            <h5 class="w3-padding-32">Please type in a sig text:</h5>
-            <textarea [(ngModel)]="sigText" name="prescription" cols="90" rows="7"></textarea>
-            <button class="w3-button w3-black w3-padding-large w3-large w3-margin-top" (click)="onTextSubmitted()">Submit</button>
-          </div>
-            <div class="res-content">
-              <h1>Your Personal Drug Schedule</h1>
-                <tr>
-                  <td colspan="2">
-                    <mat-form-field
-                    appearance="fill"
-                    >
-                    <input
-                      matInput
-                      [(ngModel)]="currentDate"
-                      [matDatepicker]="picker"
-                      placeholder="Please pick a date"
-                    />
-                    <mat-datepicker-toggle
-                      matSuffix
-                      [for]="picker"
-                    ></mat-datepicker-toggle>
-                    <mat-datepicker
-                      #picker
-                    ></mat-datepicker>
-                    </mat-form-field>
-                  </td>
-                  <td>
-                    <a (click)="generateSchedule()">
-                      <button
-                        mat-raised-button
-                        class="submit-button"
-                      >
-                        Generate Schedule
-                      </button>
-                    </a>
-                  </td>
-                </tr>
-          
-              <mat-card>
-                <mat-list>
-                  <div *ngFor="let sig of parsedSig$ | async">
-                    <mat-list-item>
-                        Original Token: {{ sig.token }}
-                    </mat-list-item>
-                    <mat-list-item>
-                        Tag: {{ sig.tag }}
-                    </mat-list-item>
-                  </div>
-                </mat-list>
-              </mat-card>
+  <div class="w3-content">
+    <div class="w3-twothird">
+      <div *ngIf="alert==1">
+        <ngb-alert type="success" [dismissible]="false">
+          Prescription added
+        </ngb-alert>
+      </div>
+      <div *ngIf="alert==2">
+        <ngb-alert type="danger" [dismissible]="false">
+          Error in adding prescription
+        </ngb-alert>
+      </div>
+      <h1>Enter your prescription in the textbox below:</h1>
+      <div class="sig-content">
+        <form [formGroup]="sigForm">
+          <table>
+            <div class="sig-input">
+              <tr>
+                <td>
+                  <mat-label>Please enter the drug name:</mat-label>
+                  <mat-form-field appearance="outline">
+                    <input matInput formControlName="drugName" [(ngModel)]="drugName" ng-focus="alert = 0" required />
+                    <mat-error>
+                      Field is required.
+                    </mat-error>
+                  </mat-form-field>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <mat-label>Please type in a sig text:</mat-label>
+                  <mat-form-field appearance="outline">
+                    <input matInput formControlName="sigText" [(ngModel)]="sigText" ng-focus="alert = 0" required />
+                    <mat-error>
+                      Field is required.
+                    </mat-error>
+                  </mat-form-field>
+                </td>
+              </tr>
             </div>
+          </table>
+          <button class="w3-button w3-black w3-padding-large w3-large w3-margin-top" [disabled]="!sigForm.valid"
+            (click)="onTextSubmitted()">Submit</button>
+        </form>
+      </div>
+      <div class="res-content">
+        <h1>Your Personal Drug Schedule</h1>
+        <tr>
+          <td colspan="2">
+            <mat-form-field appearance="fill">
+              <input matInput [(ngModel)]="currentDate" [matDatepicker]="picker" placeholder="Please pick a date" />
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+          </td>
+          <td>
+            <button mat-raised-button class="w3-button w3-black w3-padding-large w3-large w3-margin-top"
+              (click)="onGenerateSchedule()">
+              Generate Schedule
+            </button>
+          </td>
+        </tr>
+        <!-- [dataSource]="dataSource" -->
+        <!-- *matCellDef="let element" -->
+        <!-- *ngIf="drugTime$ | async as drugTime" -->
+        <div>
+          <mat-list *ngIf="drugTimes">
+            <div *ngFor="let drugTime of drugTimes">
+              <mat-list-item>
+                Drug Name: {{ drugTime.drug.name }}
+              </mat-list-item>
+              <mat-list-item>
+                Dose: {{ drugTime.drug.dose }}
+              </mat-list-item>
+              <mat-list-item>
+                Route: {{ drugTime.drug.route }}
+              </mat-list-item>
+              <mat-list-item>
+                Disorder: {{ drugTime.drug.disorder }}
+              </mat-list-item>
+              <mat-list-item>
+                Caution: {{ drugTime.drug.caution }}
+              </mat-list-item>
+              <mat-list-item>
+                Time: {{ drugTime.time }}
+              </mat-list-item>
+            </div>
+          </mat-list>
         </div>
+        <div *ngIf="drugTimes">
+          <table mat-table [dataSource]="drugTimes" class="mat-elevation-z8">
+            <!-- Drug Name Column -->
+            <ng-container matColumnDef="drugName">
+              <th mat-header-cell *matHeaderCellDef> Drug Name </th>
+              <td mat-cell *matCellDef="let drugTime"> name </td>
+            </ng-container>
+
+            <!-- Dose Column -->
+            <ng-container matColumnDef="dose">
+              <th mat-header-cell *matHeaderCellDef> Dose </th>
+              <td mat-cell *matCellDef="let drugTime"> {{drugTime.drug.dose}} </td>
+            </ng-container>
+
+            <!-- Route Column -->
+            <ng-container matColumnDef="route">
+              <th mat-header-cell *matHeaderCellDef> Route </th>
+              <td mat-cell *matCellDef="let drugTime"> {{drugTime.drug.route}} </td>
+            </ng-container>
+
+            <!-- Disorder Column -->
+            <ng-container matColumnDef="disorder">
+              <th mat-header-cell *matHeaderCellDef> Disorder </th>
+              <td mat-cell *matCellDef="let drugTime"> {{drugTime.drug.disorder}} </td>
+            </ng-container>
+
+            <!-- Caution Column -->
+            <ng-container matColumnDef="caution">
+              <th mat-header-cell *matHeaderCellDef> Caution </th>
+              <td mat-cell *matCellDef="let drugTime"> {{drugTime.drug.caution}} </td>
+            </ng-container>
+
+            <!-- Time Column -->
+            <ng-container matColumnDef="time">
+              <th mat-header-cell *matHeaderCellDef> Time </th>
+              <td mat-cell *matCellDef="let drugTime"> {{drugTime.time}} </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+
+        <!-- <mat-card>
+          <mat-list>
+            <div *ngFor="let sig of parsedSig">
+              <mat-list-item>
+                Original Token: {{ sig.token }}
+              </mat-list-item>
+              <mat-list-item>
+                Tag: {{ sig.tag }}
+              </mat-list-item>
+            </div>
+          </mat-list>
+        </mat-card> -->
+
+      </div>
     </div>
   </div>
-
-  
+</div>

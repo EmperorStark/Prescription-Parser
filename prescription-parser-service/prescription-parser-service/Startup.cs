@@ -28,7 +28,7 @@ namespace prescription_parser_service
         {
             services.AddControllers();
 
-            //services.AddSingleton<ICacheProvider>(new RedisCacheProvider("localhost"));
+            services.AddSingleton<ICacheProvider>(new RedisCacheProvider("localhost"));
 
         }
 
