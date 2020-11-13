@@ -86,23 +86,25 @@
           </mat-list>
         </div> -->
 
-        <table mdbTable>
-          <thead>
-            <tr>
-              <th *ngFor="let head of displayedColumns" scope="col">{{head}} </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr mdbTableCol *ngFor="let drugTime of drugTimes">
-              <td>{{drugTime.drug.name}}</td>
-              <td>{{drugTime.drug.dose}}</td>
-              <td>{{drugTime.drug.route}}</td>
-              <td>{{drugTime.drug.disorder}}</td>
-              <td>{{drugTime.drug.caution}}</td>
-              <td>{{drugTime.time}}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div *ngIf="drugTimes">
+          <table mdbTable>
+            <thead>
+              <tr>
+                <th *ngFor="let head of displayedColumns" scope="col">{{head}} </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr mdbTableCol *ngFor="let dT of drugTimes">
+                <td>{{dT.drugTime.drug.name}}</td>
+                <td>{{dT.drugTime.drug.dose}}</td>
+                <td>{{dT.drugTime.drug.route}}</td>
+                <td>{{dT.drugTime.drug.disorder}}</td>
+                <td>{{dT.drugTime.drug.caution}}</td>
+                <td>{{dT.date.getHours() + ":" + padZeroes(dT.date.getMinutes())}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>

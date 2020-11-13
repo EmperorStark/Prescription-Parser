@@ -48,6 +48,7 @@ namespace prescription_parser_service.Controllers
             {
                 ["text"] = sigText
             };
+            Console.WriteLine("IN Get request!!!");
             var response = await client.PostAsJsonAsync("api", jsonInput);
             var r = await response.Content.ReadAsStringAsync();
             var json = JObject.Parse(r);
@@ -60,25 +61,21 @@ namespace prescription_parser_service.Controllers
                     Tag = obj["tag"].ToString()
                 });
             }
-            var cacheObject = await cache.TryGetValueAsync<List<Whole>>("CurrentDrugDate");
+            var cacheObject = await cache.TryGetValueAsync<List<Date>>("CurrentDrugDate");
             Whole drugTimes;
             if (cacheObject.keyExists)
             {
-                drugTimes = cacheObject.result[0];
+                drugTimes = new Whole(cacheObject.result);
                 drugTimes.addParse(responses, drugName);
             }
             else
             {
                 drugTimes = new Whole(responses, drugName);
             }
-            var toCache = new List<Whole>
-            {
-                drugTimes
-            };
-            await cache.SetAsync("CurrentDrugDate", toCache);
-            var ress = await cache.TryGetValueAsync<List<Whole>>("CurrentDrugDate");
-            Console.WriteLine("REDIS: " + ress.result[0].drugByDate[0].drugTimes[0].drug.dose);
-            return Ok(responses);
+            await cache.SetAsync("CurrentDrugDate", drugTimes.drugByDate);
+            var ress = await cache.TryGetValueAsync<List<Date>>("CurrentDrugDate");
+            //Console.WriteLine("REDIS: " + ress.result[0].drugByDate[0].drugTimes[0].drug.dose);
+            return Ok(ress.result);
         }
 
         [HttpGet]
@@ -86,15 +83,15 @@ namespace prescription_parser_service.Controllers
         public async Task<IActionResult> GetDrugTime(int year, int month, int day)
         {
             Console.WriteLine("Reached here. " + year + "  " + month + "  " + day);
-            var drugTimes = await cache.TryGetValueAsync<Whole>("CurrentDrugDate");
+            var drugTimes = await cache.TryGetValueAsync<List<Date>>("CurrentDrugDate");
             var drugTime = new List<DrugTime>();
             if (drugTimes.keyExists)
             {
-                foreach (var time in drugTimes.result.drugByDate)
+                foreach (var time in drugTimes.result)
                 {
                     if (time.theDate.Date.Month == month && time.theDate.Date.Year == year && time.theDate.Date.Day == day)
                     {
-                        drugTime = time.drugTimes;
+                        drugTime.AddRange(time.drugTimes);
                     }
                 }
                 if (drugTime.Count != 0)

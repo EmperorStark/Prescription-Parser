@@ -11,22 +11,22 @@ export class ParseSigService {
 
   constructor(private http: HttpClient) { }
 
-  public parseSig(sigText : string, drugName : string): Observable<SigResponse[]>{
+  public parseSig(sigText : string, drugName : string): Observable<any[]>{
     const params = new HttpParams();
     params.append('Content-Type', 'application/json');
-    return this.http.get<SigResponse[]>(`${environment.ApiBaseUrl}/parse?sigText=` + sigText + "&drugName=" + drugName, {
+    return this.http.get<any[]>(`${environment.ApiBaseUrl}/parse?sigText=` + sigText + "&drugName=" + drugName, {
       params
     });
   }
 
-  public getDrugTime(year:number, month:number, day:number): Observable<any>{
+  public getDrugTimes(year:number, month:number, day:number): Observable<any[]>{
     console.log('year: ' + year + ' month: ' + month + ' day: ' + day);
     const params = new HttpParams();
     params.append('Content-Type', 'application/json');
     params.append('year', year.toString());
     params.append('month', month.toString());
     params.append('day', day.toString());
-    return this.http.get<any>(`${environment.ApiBaseUrl}/parse/drugTime?year=` + year + "&month=" + month + "&day=" + day, {
+    return this.http.get<any[]>(`${environment.ApiBaseUrl}/parse/drugTime?year=` + year + "&month=" + month + "&day=" + day, {
       params
     });
   }

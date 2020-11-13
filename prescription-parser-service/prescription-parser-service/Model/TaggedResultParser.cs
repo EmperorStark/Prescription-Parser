@@ -13,6 +13,10 @@ public class Whole {
         public List<Date> drugByDate = new List<Date>();
 
         public Whole() { }
+        public Whole(List<Date> drugByDate)
+        {
+            this.drugByDate = drugByDate;
+        }
         public Whole(List<SigResponse> taggedResult, String drugName)
         {
             var days = parseTaggedResult(taggedResult);
@@ -53,7 +57,7 @@ public class Whole {
         {
             foreach(Date temp in theDates)
             {
-                if (temp.theDate.Equals(temp)) return true;
+                if (temp.theDate.Equals(date.Date)) return true;
             }
             return false;
         }
@@ -836,6 +840,7 @@ public class Whole {
     {
         public DateTime theDate { get; set; }
         public List<DrugTime> drugTimes { get; set; }
+        public Date() { }
         public Date(DateTime theDate, List<DrugTime> drugTimes)
         {
             this.theDate = theDate;
