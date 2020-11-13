@@ -42,11 +42,17 @@ export class SigInputComponent implements OnInit {
 
   dataSource = ELEMENT_DATA;
 
+  elements: any = [
+    {id: 1, first: 'Mark', last: 'Otto', handle: '@mdo'},
+    {id: 2, first: 'Jacob', last: 'Thornton', handle: '@fat'},
+    {id: 3, first: 'Larry', last: 'the Bird', handle: '@twitter'},
+  ];
+
   maxYear = new Date().getFullYear() + 10; // oldest recorded person was 122 so only let calendar go back 125 years
   maxDate = new Date(this.maxYear, 0, 1); // create date based on the min year
   minDate = new Date(); // today
 
-  displayedColumns: string[] = ['drugName', 'dose', 'route', 'disorder', 'caution', 'time'];
+  displayedColumns: string[] = ['DrugName', 'Dose', 'Route', 'Disorder', 'Caution', 'Time'];
 
   sigForm = this.fb.group({
     drugName: ['', Validators.required],
@@ -75,6 +81,7 @@ export class SigInputComponent implements OnInit {
   }
 
   onGenerateSchedule() {
+    this.drugTimes = [];
     this.sigService
       .getDrugTime(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, this.currentDate.getDate())
       .subscribe((res) => {
