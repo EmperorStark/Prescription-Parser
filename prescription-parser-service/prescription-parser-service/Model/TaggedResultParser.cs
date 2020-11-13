@@ -16,7 +16,7 @@ public class Whole {
             days = parseTaggedResult(taggedResult);
             foreach (DrugTime day in days)
             {
-                day.drug.drugName = drugName;
+                day.drug.name = drugName;
             }
         }
 
