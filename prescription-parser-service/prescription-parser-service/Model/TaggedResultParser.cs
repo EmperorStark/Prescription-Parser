@@ -11,18 +11,100 @@ using static prescription_parser_service.Controllers.SigController;
 namespace prescription_parser_service.TaggedResultParser {
 public class Whole {
         public List<DrugTime> days  = new List<DrugTime>();
+        public List<Date> drugByDate = new List<Date>();
 
-        public Whole(List<SigResponse> taggedResult, String drugName) {
+        public Whole(List<SigResponse> taggedResult, String drugName)
+        {
             days = parseTaggedResult(taggedResult);
             foreach (DrugTime day in days)
             {
-                day.drug.drugName = drugName;
+                day.drug.name = drugName;
             }
+            drugByDate = sortDays();
         }
 
         public void addParse(List<SigResponse> taggedResult)
         {
-            
+            List<DrugTime> temp = parseTaggedResult(taggedResult);
+            days.AddRange(temp);
+            addDates(temp);
+        }
+
+        public List<Date> sortDays()
+        {
+            List<Date> toReturn = new List<Date>();
+            List<DateTime> datesInvolved = extractAllDates(days);
+            foreach (DateTime date in datesInvolved)
+            {
+                if(!containDate(toReturn, date))
+                {
+                    Date toAdd = new Date(date, extractSameDate(days, date));
+                    toReturn.Add(toAdd);
+                }
+            }
+            toReturn.Sort();
+            return toReturn;
+        }
+
+        public Boolean containDate(List<Date> theDates, DateTime date)
+        {
+            foreach(Date temp in theDates)
+            {
+                if (temp.theDate.Equals(temp)) return true;
+            }
+            return false;
+        }
+
+        public List<DateTime> extractAllDates(List<DrugTime> list)
+        {
+            List<DateTime> dates = new List<DateTime>();
+
+            foreach(DrugTime drugtime in list)
+            {
+                if(!dates.Contains(drugtime.time.Date))
+                {
+                    dates.Add(drugtime.time.Date);
+                }
+            }
+            return dates;
+        }
+        public List<DrugTime> extractSameDate(List<DrugTime> list, DateTime date)
+        {
+            List<DrugTime> toReturn = new List<DrugTime>();
+            foreach (DrugTime drugtime in list)
+            {
+                if(date.Equals(drugtime.time.Date))
+                {
+                    toReturn.Add(drugtime);
+                }
+            }
+            return toReturn;
+        }
+
+        public void addSameDate(List<DrugTime> drugTimes, DateTime date)
+        {
+            foreach(Date date1 in drugByDate)
+            {
+                if(date1.theDate.Equals(date))
+                {
+                    date1.drugTimes.AddRange(extractSameDate(drugTimes, date));
+                }
+            }
+        }
+        public void addDates(List<DrugTime> drugTimes)
+        {
+            List<DateTime> datesInvolved = extractAllDates(days);
+            foreach (DateTime date in datesInvolved)
+            {
+                if (!containDate(drugByDate, date))
+                {
+                    Date toAdd = new Date(date, extractSameDate(days, date));
+                    drugByDate.Add(toAdd);
+                } else
+                {
+                    addSameDate(drugTimes, date);
+                }
+            }
         }
 
         private List<DrugTime> parseTaggedResult(List<SigResponse> taggedResult) {
@@ -729,6 +811,22 @@ public class Whole {
                 return timeToTake.Add(duration);
             }
             return timeToTake;
+        }
+    }
+
+    public class Date : IComparable<Date>
+    {
+        public DateTime theDate { get; set; }
+        public List<DrugTime> drugTimes { get; set; }
+        public Date(DateTime theDate, List<DrugTime> drugTimes)
+        {
+            this.theDate = theDate;
+            this.drugTimes = drugTimes;
+        }
+
+        public int CompareTo([AllowNull] Date other)
+        {
+            return theDate.CompareTo(other.theDate.Date);
         }
     }
 
