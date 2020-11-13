@@ -12,8 +12,12 @@ namespace prescription_parser_service.TaggedResultParser {
 public class Whole {
         public List<DrugTime> days  = new List<DrugTime>();
 
-        public Whole(List<SigResponse> taggedResult) {
+        public Whole(List<SigResponse> taggedResult, String drugName) {
             days = parseTaggedResult(taggedResult);
+            foreach (DrugTime day in days)
+            {
+                day.drug.drugName = drugName;
+            }
         }
 
         public void addParse(List<SigResponse> taggedResult)
