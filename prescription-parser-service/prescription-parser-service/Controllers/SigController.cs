@@ -60,11 +60,19 @@ namespace prescription_parser_service.Controllers
                     Tag = obj["tag"].ToString()
                 });
             }
-            var parsedResult = new Whole(responses);
-            await this.cache.SetAsync("CurrentList", parsedResult.days);
-            var ress = await cache.TryGetValueAsync<List<DrugTime>>("CurrentList");
-            Console.WriteLine(ress);
-            Console.WriteLine("REDIS: " + ress.result[0].time);
+            var cacheObject = await cache.TryGetValueAsync<Whole>("CurrentDrugDate");
+            var drugTimes = cacheObject.result;
+            if (cacheObject.keyExists)
+            {
+                drugTimes.addParse(responses);
+            }
+            else
+            {
+                drugTimes = new Whole(responses, drugName);
+            }
+            await cache.SetAsync("CurrentDrugDate", drugTimes);
+            var ress = await cache.TryGetValueAsync<Whole>("CurrentDrugDate");
+            Console.WriteLine("REDIS: " + ress.result.drugByDate[0].drugTimes[0].drug.dose);
             return Ok(responses);
         }
 
@@ -73,25 +81,28 @@ namespace prescription_parser_service.Controllers
         public async Task<IActionResult> GetDrugTime(int year, int month, int day)
         {
             Console.WriteLine("Reached here. " + year + "  " + month + "  " + day);
-            var drugTimes = await cache.TryGetValueAsync<List<DrugTime>>("CurrentList");
-            var drugTime = new DrugTime();
-            foreach (var time in drugTimes.result)
+            var drugTimes = await cache.TryGetValueAsync<Whole>("CurrentDrugDate");
+            var drugTime = new List<DrugTime>();
+            if (drugTimes.keyExists)
             {
-                if (time.time.Date.Month == month && time.time.Date.Year == year && time.time.Date.Day == day)
+                foreach (var time in drugTimes.result.drugByDate)
                 {
-                    drugTime = time;
+                    if (time.theDate.Date.Month == month && time.theDate.Date.Year == year && time.theDate.Date.Day == day)
+                    {
+                        drugTime = time.drugTimes;
+                    }
+                }
+                if (drugTime.Count != 0)
+                {
+                    return Ok(drugTime);
+                }
+                else
+                {
+                    Console.WriteLine("resutl is null!");
+                    return Ok(drugTime);
                 }
             }
-            if(drugTime.drug != null)
-            {
-                Console.WriteLine(drugTime.drug.dose);
-                return Ok(drugTime);
-            }
-            else
-            {
-                Console.WriteLine("resutl is null!");
-                return Ok(drugTime);
-            }
+            return Ok(drugTime);
         }
 
             // POST api/<SigController>

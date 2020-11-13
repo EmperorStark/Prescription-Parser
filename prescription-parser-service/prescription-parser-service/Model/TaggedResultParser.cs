@@ -13,6 +13,7 @@ public class Whole {
         public List<DrugTime> days  = new List<DrugTime>();
         public List<Date> drugByDate = new List<Date>();
 
+        public Whole() { }
         public Whole(List<SigResponse> taggedResult, String drugName)
         {
             days = parseTaggedResult(taggedResult);
