@@ -16,6 +16,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTableModule } from '@angular/material/table';
 import { NgbAlertModule } from '@ng-bootstrap/ng-bootstrap';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatGridListModule } from '@angular/material/grid-list';
+
+// MDB Angular Pro
+import { WavesModule, TableModule } from 'ng-uikit-pro-standard';
 
 @NgModule({
   declarations: [
@@ -34,10 +38,13 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     MatInputModule,
     MatListModule,
     MatCardModule,
+    MatGridListModule,
     MatNativeDateModule,
     BrowserAnimationsModule,
     MatTableModule,
-    NgbAlertModule
+    NgbAlertModule,
+    WavesModule, 
+    TableModule
   ],
   providers: [
     MatCardModule,
