@@ -61,9 +61,6 @@
             </button>
           </td>
         </tr>
-        <!-- [dataSource]="dataSource" -->
-        <!-- *matCellDef="let element" -->
-        <!-- *ngIf="drugTime$ | async as drugTime" -->
         <div>
           <mat-list *ngIf="drugTimes">
             <div *ngFor="let drugTime of drugTimes">
@@ -88,39 +85,41 @@
             </div>
           </mat-list>
         </div>
-        <div *ngIf="drugTimes">
+        <mat-card>
+          <mat-grid-list cols="2" rowHeight="50px">
+            <mat-grid-tile rowspan="10">
+              <span>Data here</span>
+            </mat-grid-tile>
+          </mat-grid-list>
+        </mat-card>
+
+        <!-- <div *ngIf="drugTimes">
           <table mat-table [dataSource]="drugTimes" class="mat-elevation-z8">
-            <!-- Drug Name Column -->
             <ng-container matColumnDef="drugName">
               <th mat-header-cell *matHeaderCellDef> Drug Name </th>
               <td mat-cell *matCellDef="let drugTime"> name </td>
             </ng-container>
 
-            <!-- Dose Column -->
             <ng-container matColumnDef="dose">
               <th mat-header-cell *matHeaderCellDef> Dose </th>
               <td mat-cell *matCellDef="let drugTime"> {{drugTime.drug.dose}} </td>
             </ng-container>
 
-            <!-- Route Column -->
             <ng-container matColumnDef="route">
               <th mat-header-cell *matHeaderCellDef> Route </th>
               <td mat-cell *matCellDef="let drugTime"> {{drugTime.drug.route}} </td>
             </ng-container>
 
-            <!-- Disorder Column -->
             <ng-container matColumnDef="disorder">
               <th mat-header-cell *matHeaderCellDef> Disorder </th>
               <td mat-cell *matCellDef="let drugTime"> {{drugTime.drug.disorder}} </td>
             </ng-container>
 
-            <!-- Caution Column -->
             <ng-container matColumnDef="caution">
               <th mat-header-cell *matHeaderCellDef> Caution </th>
               <td mat-cell *matCellDef="let drugTime"> {{drugTime.drug.caution}} </td>
             </ng-container>
 
-            <!-- Time Column -->
             <ng-container matColumnDef="time">
               <th mat-header-cell *matHeaderCellDef> Time </th>
               <td mat-cell *matCellDef="let drugTime"> {{drugTime.time}} </td>
@@ -129,21 +128,7 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
-        </div>
-
-        <!-- <mat-card>
-          <mat-list>
-            <div *ngFor="let sig of parsedSig">
-              <mat-list-item>
-                Original Token: {{ sig.token }}
-              </mat-list-item>
-              <mat-list-item>
-                Tag: {{ sig.tag }}
-              </mat-list-item>
-            </div>
-          </mat-list>
-        </mat-card> -->
-
+        </div> -->
       </div>
     </div>
   </div>
