@@ -24,9 +24,13 @@ public class Whole {
             drugByDate = sortDays();
         }
 
-        public void addParse(List<SigResponse> taggedResult)
+        public void addParse(List<SigResponse> taggedResult, String drugName)
         {
             List<DrugTime> temp = parseTaggedResult(taggedResult);
+            foreach (DrugTime day in temp)
+            {
+                day.drug.name = drugName;
+            }
             days.AddRange(temp);
             addDates(temp);
         }
