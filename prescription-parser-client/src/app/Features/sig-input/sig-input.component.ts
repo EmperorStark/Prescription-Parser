@@ -44,7 +44,6 @@ export class SigInputComponent implements OnInit {
     console.log(this.sigText + '   ' + this.drugName);
     this.sigService
       .parseSig(this.sigText, this.drugName)
-      .pipe(take(1))
       .subscribe((res) => {
         if (res.length > 0) {
           this.alert = 1;
@@ -54,7 +53,7 @@ export class SigInputComponent implements OnInit {
             for(let j = 0; j < drugs.length; j++) {
               var interval = this.intervalToMilliseconds(new Date(Date.parse(drugs[j].time)));
               let n: number;
-              n = <any> setTimeout(this.setAlert(j, drugs), interval);
+              n = <any> setTimeout(this.setAlert, interval, j, drugs);
             }
           }
         } else {
@@ -63,9 +62,10 @@ export class SigInputComponent implements OnInit {
       });
   }
 
-  setAlert(j : any, drugs : any[]) {
+  setAlert = (j : any, drugs : any[]) => {
+    console.log('in alert');
     if(drugs && j<drugs.length){
-      alert(drugs[j].drug.dose + ' ' + drugs[j].drug.drugName + ' ' + drugs[j].drug.Route + ' ' + drugs[j].drug.Caution);
+      alert(drugs[j].drug.dose + ' ' + drugs[j].drug.name + ' ' + drugs[j].drug.route + ' ' + drugs[j].drug.caution);
     }
   };
 
