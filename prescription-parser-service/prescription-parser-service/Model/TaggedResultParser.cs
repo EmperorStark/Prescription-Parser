@@ -10,18 +10,17 @@ using static prescription_parser_service.Controllers.SigController;
 
 namespace prescription_parser_service.TaggedResultParser {
 public class Whole {
-        public List<DrugTime> days  = new List<DrugTime>();
         public List<Date> drugByDate = new List<Date>();
 
         public Whole() { }
         public Whole(List<SigResponse> taggedResult, String drugName)
         {
-            days = parseTaggedResult(taggedResult);
+            var days = parseTaggedResult(taggedResult);
             foreach (DrugTime day in days)
             {
                 day.drug.name = drugName;
             }
-            drugByDate = sortDays();
+            drugByDate = sortDays(days);
         }
 
         public void addParse(List<SigResponse> taggedResult, String drugName)
@@ -31,11 +30,10 @@ public class Whole {
             {
                 day.drug.name = drugName;
             }
-            days.AddRange(temp);
             addDates(temp);
         }
 
-        public List<Date> sortDays()
+        public List<Date> sortDays(List<DrugTime> days)
         {
             List<Date> toReturn = new List<Date>();
             List<DateTime> datesInvolved = extractAllDates(days);
@@ -60,19 +58,34 @@ public class Whole {
             return false;
         }
 
+        public List<DateTime> extractAllDates(List<Date> list)
+        {
+            List<DateTime> dates = new List<DateTime>();
+
+            foreach(var drugtime in list)
+            {
+                if(!dates.Contains(drugtime.theDate))
+                {
+                    dates.Add(drugtime.theDate);
+                }
+            }
+            return dates;
+        }
+
         public List<DateTime> extractAllDates(List<DrugTime> list)
         {
             List<DateTime> dates = new List<DateTime>();
 
-            foreach(DrugTime drugtime in list)
+            foreach (var drugtime in list)
             {
-                if(!dates.Contains(drugtime.time.Date))
+                if (!dates.Contains(drugtime.time.Date))
                 {
                     dates.Add(drugtime.time.Date);
                 }
             }
             return dates;
         }
+
         public List<DrugTime> extractSameDate(List<DrugTime> list, DateTime date)
         {
             List<DrugTime> toReturn = new List<DrugTime>();
@@ -98,12 +111,12 @@ public class Whole {
         }
         public void addDates(List<DrugTime> drugTimes)
         {
-            List<DateTime> datesInvolved = extractAllDates(days);
+            List<DateTime> datesInvolved = extractAllDates(drugByDate);
             foreach (DateTime date in datesInvolved)
             {
                 if (!containDate(drugByDate, date))
                 {
-                    Date toAdd = new Date(date, extractSameDate(days, date));
+                    Date toAdd = new Date(date, extractSameDate(drugTimes, date));
                     drugByDate.Add(toAdd);
                 } else
                 {
