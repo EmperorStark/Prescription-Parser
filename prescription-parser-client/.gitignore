@@ -9,7 +9,9 @@
 
 # dependencies
 /node_modules
-
+../prescription-parser-service/bin/Debug/
+../prescription-parser-service/prescription-parser-service/bin/
+../prescription-parser-service/prescription-parser-service/obj/Debug/
 # profiling files
 chrome-profiler-events*.json
 speed-measure-plugin*.json

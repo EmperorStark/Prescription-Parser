@@ -1,4 +1,5 @@
 tagger_training_data.json
 prescription-parser-service/bin/Debug/
-prescription-parser-service/prescription-parser-service/bin/Debug/
+prescription-parser-service/prescription-parser-service/bin/
 prescription-parser-service/prescription-parser-service/obj/Debug/
+node_modules/
