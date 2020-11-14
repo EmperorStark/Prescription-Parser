@@ -13,10 +13,6 @@ public class Whole {
         public List<Date> drugByDate = new List<Date>();
 
         public Whole() { }
-        public Whole(List<Date> drugByDate)
-        {
-            this.drugByDate = drugByDate;
-        }
         public Whole(List<SigResponse> taggedResult, String drugName)
         {
             var days = parseTaggedResult(taggedResult);
@@ -44,7 +40,7 @@ public class Whole {
             List<DateTime> datesInvolved = extractAllDates(days);
             foreach (DateTime date in datesInvolved)
             {
-                if(!containDate(toReturn, date))
+                if (!containDate(toReturn, date))
                 {
                     Date toAdd = new Date(date, extractSameDate(days, date));
                     toReturn.Add(toAdd);
@@ -56,7 +52,7 @@ public class Whole {
 
         public Boolean containDate(List<Date> theDates, DateTime date)
         {
-            foreach(Date temp in theDates)
+            foreach (Date temp in theDates)
             {
                 if (temp.theDate.Equals(date.Date)) return true;
             }
@@ -67,9 +63,9 @@ public class Whole {
         {
             List<DateTime> dates = new List<DateTime>();
 
-            foreach(var drugtime in list)
+            foreach (var drugtime in list)
             {
-                if(!dates.Contains(drugtime.theDate))
+                if (!dates.Contains(drugtime.theDate))
                 {
                     dates.Add(drugtime.theDate);
                 }
@@ -96,7 +92,7 @@ public class Whole {
             List<DrugTime> toReturn = new List<DrugTime>();
             foreach (DrugTime drugtime in list)
             {
-                if(date.Equals(drugtime.time.Date))
+                if (date.Equals(drugtime.time.Date))
                 {
                     toReturn.Add(drugtime);
                 }
@@ -106,9 +102,9 @@ public class Whole {
 
         public void addSameDate(List<DrugTime> drugTimes, DateTime date)
         {
-            foreach(Date date1 in drugByDate)
+            foreach (Date date1 in drugByDate)
             {
-                if(date1.theDate.Equals(date))
+                if (date1.theDate.Equals(date))
                 {
                     date1.drugTimes.AddRange(extractSameDate(drugTimes, date));
                 }
@@ -116,14 +112,17 @@ public class Whole {
         }
         public void addDates(List<DrugTime> drugTimes)
         {
-            List<DateTime> datesInvolved = extractAllDates(drugByDate);
+            List<DateTime> datesInvolved = extractAllDates(drugTimes);
+            foreach (DateTime i in datesInvolved)
+                Console.WriteLine(i.ToString());
             foreach (DateTime date in datesInvolved)
             {
                 if (!containDate(drugByDate, date))
                 {
                     Date toAdd = new Date(date, extractSameDate(drugTimes, date));
                     drugByDate.Add(toAdd);
-                } else
+                }
+                else
                 {
                     addSameDate(drugTimes, date);
                 }
