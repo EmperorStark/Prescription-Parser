@@ -72,6 +72,10 @@ namespace prescription_parser_service.Controllers
             else
             {
                 drugTimes = new Whole(responses, drugName);
+                foreach(var drugDate in drugTimes.drugByDate)
+                {
+                    toReturn.AddRange(drugDate.drugTimes);
+                }
             }
             await cache.SetAsync("CurrentDrugDate", drugTimes.drugByDate);
             var ress = await cache.TryGetValueAsync<List<Date>>("CurrentDrugDate");

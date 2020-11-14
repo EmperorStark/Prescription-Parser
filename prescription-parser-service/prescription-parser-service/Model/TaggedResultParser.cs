@@ -13,6 +13,10 @@ public class Whole {
         public List<Date> drugByDate = new List<Date>();
 
         public Whole() { }
+        public Whole(List<Date> drugByDate)
+        {
+            this.drugByDate = drugByDate;
+        }
         public Whole(List<SigResponse> taggedResult, String drugName)
         {
             var days = parseTaggedResult(taggedResult);
