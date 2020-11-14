@@ -409,6 +409,13 @@ public class Whole {
                             frequency = FrequencyHelper(1, pres[i + 1].Token);
                         }
                     }
+                    if (currentTag.Equals("PER") && (i + 2 <= pres.Count)) // "per day"
+                    {
+                        if (pres[i + 1].Tag.Equals("UnitTime"))
+                        {
+                            frequency = FrequencyHelper(1, pres[i + 1].Token);
+                        }
+                    }
                     if (currentTag.Equals("Frequency") && (i + 2) <= pres.Count) // "twice daily"
                     {
                         if (pres[i + 1].Tag.Equals("Interval"))
