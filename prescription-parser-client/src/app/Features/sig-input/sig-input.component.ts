@@ -32,7 +32,7 @@ export class SigInputComponent implements OnInit {
     sigText: ['', Validators.required],
   });
 
-  
+
 
   constructor(private sigService: ParseSigService, private fb: FormBuilder,) {
   }
@@ -48,13 +48,10 @@ export class SigInputComponent implements OnInit {
         if (res.length > 0) {
           this.alert = 1;
           this.parsedSig = res;
-          for(let i = 0; i < res.length; i++) {
-            var drugs = res[i].drugTimes;
-            for(let j = 0; j < drugs.length; j++) {
-              var interval = this.intervalToMilliseconds(new Date(Date.parse(drugs[j].time)));
-              let n: number;
-              n = <any> setTimeout(this.setAlert, interval, j, drugs);
-            }
+          for (let j = 0; j < res.length; j++) {
+            var interval = this.intervalToMilliseconds(new Date(Date.parse(res[j].time)));
+            let n: number;
+            n = <any>setTimeout(this.setAlert, interval, j, res);
           }
         } else {
           this.alert = 2;
@@ -62,16 +59,16 @@ export class SigInputComponent implements OnInit {
       });
   }
 
-  setAlert = (j : any, drugs : any[]) => {
+  setAlert = (j: any, drugs: any[]) => {
     console.log('in alert');
-    if(drugs && j<drugs.length){
-      alert(drugs[j].drug.dose + ' ' + drugs[j].drug.name + ' ' + drugs[j].drug.route + ' ' + drugs[j].drug.caution);
+    if (drugs && j < drugs.length) {
+      alert(drugs[j].drug.dose + ' of ' + drugs[j].drug.name + ' ' + drugs[j].drug.route + ' ' + drugs[j].drug.caution);
     }
   };
 
-  padZeroes(minutes:number){
-    if(minutes<10){
-      return '0'+ minutes;
+  padZeroes(minutes: number) {
+    if (minutes < 10) {
+      return '0' + minutes;
     }
     return minutes;
   }
@@ -81,7 +78,7 @@ export class SigInputComponent implements OnInit {
     this.sigService
       .getDrugTimes(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, this.currentDate.getDate())
       .subscribe((res) => {
-        for(let i=0; i<res.length; i++){
+        for (let i = 0; i < res.length; i++) {
           var date = new Date(Date.parse(res[i].time));
           this.drugTimes.push(new DrugTime(res[i], date))
         }
@@ -89,7 +86,7 @@ export class SigInputComponent implements OnInit {
       });
   }
 
-  intervalToMilliseconds(drugTime : Date) {
+  intervalToMilliseconds(drugTime: Date) {
     var curDate = new Date();
     var difference = drugTime.getTime() - curDate.getTime() + 2000;
     console.log(difference);

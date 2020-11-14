@@ -61,12 +61,13 @@ namespace prescription_parser_service.Controllers
                     Tag = obj["tag"].ToString()
                 });
             }
+            List<DrugTime> toReturn = new List<DrugTime>();
             var cacheObject = await cache.TryGetValueAsync<List<Date>>("CurrentDrugDate");
             Whole drugTimes;
             if (cacheObject.keyExists)
             {
                 drugTimes = new Whole(cacheObject.result);
-                drugTimes.addParse(responses, drugName);
+                toReturn = drugTimes.addParse(responses, drugName);
             }
             else
             {
@@ -74,8 +75,7 @@ namespace prescription_parser_service.Controllers
             }
             await cache.SetAsync("CurrentDrugDate", drugTimes.drugByDate);
             var ress = await cache.TryGetValueAsync<List<Date>>("CurrentDrugDate");
-            //Console.WriteLine("REDIS: " + ress.result[0].drugByDate[0].drugTimes[0].drug.dose);
-            return Ok(ress.result);
+            return Ok(toReturn);
         }
 
         [HttpGet]
